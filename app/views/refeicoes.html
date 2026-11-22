@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Refeições | Gerenciador de Saúde{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">ALIMENTAÇÃO</span><h1>Minhas refeições</h1><p class="page-description">Organize suas refeições registradas com facilidade.</p></div></div>
+<div class="module-card">
+    <h2>Rotinas e Refeições</h2>
+    <p class="page-description">Cadastre suas refeições e consulte seus registros.</p>
+    <form action="{{ url_for('health.criar_refeicao') }}" method="POST" class="form-modulo">
+        <label for="titulo">Nome da refeição</label><input type="text" name="titulo" id="titulo" maxlength="100" required placeholder="Ex.: Almoço">
+        <label for="descricao">Descrição</label><input type="text" name="descricao" id="descricao" maxlength="500" placeholder="Ingredientes ou observações">
+        <label for="calorias">Calorias (kcal)</label><input type="number" step="0.1" min="0" max="10000" name="calorias" id="calorias" placeholder="Ex.: 450">
+        <button class="btn btn-primary" type="submit">Registrar refeição</button>
+    </form>
+    <div class="busca-local" role="search">
+        <label for="busca_refeicao">Buscar nas refeições</label>
+        <input type="search" id="busca_refeicao" autocomplete="off" placeholder="Nome, descrição ou data..." oninput="destacarRegistros('busca_refeicao', '.item-refeicao', 'status-busca-refeicao')">
+        <small id="status-busca-refeicao" aria-live="polite">Todos os registros permanecem visíveis.</small>
+    </div>
+    <h3>Refeições cadastradas</h3>
+    {% if refeicoes %}
+    <div class="lista-refeicoes">
+        {% for item in refeicoes %}
+        <article class="item-refeicao">
+            <div class="refeicao-topo"><strong>{{ item.titulo }}</strong><span>{{ item.calorias if item.calorias is not none else 0 }} kcal</span></div>
+            <p>{{ item.descricao or 'Sem descrição' }}</p><small>📅 {{ item.data_registro }}</small>
+            <div class="acoes"><a class="btn btn-outline" href="{{ url_for('health.editar_refeicao', rid=item.id) }}">Editar</a><form method="POST" action="{{ url_for('health.excluir_refeicao', rid=item.id) }}"><button type="submit" class="btn">Excluir</button></form></div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}<p>Nenhuma refeição cadastrada ainda.</p>{% endif %}
+</div>
+<script>
+// Único JavaScript do projeto: busca local, sem recarregar nem esconder dados.
+function destacarRegistros(inputId, seletor, statusId) {
+    const termo = document.getElementById(inputId).value.trim().toLocaleLowerCase('pt-BR');
+    const registros = document.querySelectorAll(seletor);
+    let encontrados = 0;
+    registros.forEach(registro => {
+        const conteudo = Array.from(registro.querySelectorAll('td, strong, p, small, span'))
+            .filter(el => !el.closest('form') && !el.closest('a'))
+            .map(el => el.textContent).join(' ').toLocaleLowerCase('pt-BR');
+        const corresponde = !termo || conteudo.includes(termo);
+        if (termo && corresponde) encontrados++;
+        registro.classList.toggle('busca-destaque', Boolean(termo && corresponde));
+        registro.classList.toggle('busca-suave', Boolean(termo && !corresponde));
+    });
+    document.getElementById(statusId).textContent = termo
+        ? encontrados + ' registro(s) encontrado(s). Os demais continuam visíveis.'
+        : 'Todos os registros permanecem visíveis.';
+}
+</script>
+{% endblock %}

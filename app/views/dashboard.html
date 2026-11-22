@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Minha Rotina | Gerenciador de Saúde{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">SEU DIA EM PERSPECTIVA</span><h1>Seu painel de saúde</h1><p class="page-description">Um lugar para acompanhar seus registros e sua rotina.</p></div></div>
+<section class="dashboard-top-bar" aria-label="Resumo do dia">
+    <div>
+        <h2>Minha rotina de hoje</h2>
+        <p class="dashboard-subtitle">Olá, {{ nome }}! Veja o que você registrou em {{ data_hoje }}.</p>
+    </div>
+    <span class="quick-status-badge">📅 {{ data_hoje }}</span>
+</section>
+
+<section class="stats-grid" aria-label="Indicadores pessoais">
+    <article class="stat-card">
+        <div class="stat-icon" aria-hidden="true">⚖️</div>
+        <h3>IMC mais recente</h3>
+        <div class="value">{{ '%.2f'|format(ultimo_imc.imc) if ultimo_imc else '—' }}</div>
+        <small>{{ ultimo_imc.classificacao if ultimo_imc else 'Ainda não registrado' }}</small>
+        {% if idade is not none and idade < 18 %}<small>Em adolescentes, a interpretação do IMC requer curvas por idade e sexo; a classificação exibida é simplificada.</small>{% endif %}
+        <a href="{{ url_for('auth.pagina_imc') }}" class="card-link">Ver histórico de IMC</a>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon" aria-hidden="true">🥗</div>
+        <h3>Refeições registradas hoje</h3>
+        <div class="value">{{ total_refeicoes_hoje }}</div>
+        <small>Quantidade de registros de hoje</small>
+        <a href="{{ url_for('auth.pagina_refeicoes') }}" class="card-link">Cadastrar refeição</a>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon" aria-hidden="true">🍽️</div>
+        <h3>Kcal registradas hoje</h3>
+        <div class="value">{{ '%g'|format(total_kcal_hoje) }} <span class="stat-unit">kcal</span></div>
+        <small>Soma dos valores informados nas refeições de hoje</small>
+    </article>
+</section>
+
+<section class="module-card perfil-resumo" aria-labelledby="objetivo-titulo">
+    <div class="rotina-heading">
+        <div>
+            <h2 id="objetivo-titulo">Meu objetivo e energia diária</h2>
+            <p class="page-description">Informações do seu perfil e uma estimativa aproximada, quando houver dados suficientes.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('perfil.editar_perfil') }}">{{ 'Editar perfil' if perfil else 'Configurar perfil' }}</a>
+    </div>
+    <div class="perfil-cards">
+        <article class="perfil-info-card">
+            <h3>Objetivo de acompanhamento</h3>
+            {% if perfil %}
+                <p class="perfil-valor">{{ {'manter':'Manter meu peso', 'acompanhar_ganho':'Acompanhar ganho de peso', 'acompanhar_perda':'Acompanhar perda de peso'}.get(perfil.objetivo, 'Não informado') }}</p>
+                <small>Preferência pessoal, sem metas automáticas de consumo.</small>
+            {% else %}
+                <p class="perfil-valor">Ainda não configurado</p>
+                <small>Preencha seu perfil para começar.</small>
+            {% endif %}
+        </article>
+        <article class="perfil-info-card">
+            <h3>{{ 'Necessidade energética diária estimada' if idade is not none and idade < 18 else 'Gasto energético diário estimado' }}</h3>
+            {% if energia_estimada is not none %}
+                <p class="perfil-valor">{{ energia_estimada.valor }} kcal/dia</p>
+                <small>{{ energia_estimada.metodo }}. Valor aproximado para fins educativos; não representa uma meta de alimentação.</small>
+                {% if energia_estimada.tipo == 'necessidade' %}
+                    <p class="page-description">A estimativa para adolescentes inclui uma parcela associada ao crescimento e pode diferir das necessidades individuais.</p>
+                {% endif %}
+            {% elif idade is not none and idade < 12 %}
+                <p class="perfil-valor">Disponível a partir dos 12 anos</p>
+                <small>O sistema não calcula estimativas para menores de 12 anos.</small>
+            {% else %}
+                <p class="perfil-valor">Dados insuficientes</p>
+                <small>Preencha nascimento, parâmetro da equação e nível de atividade no perfil, além de cadastrar peso e altura em IMC.</small>
+            {% endif %}
+        </article>
+    </div>
+    <p class="dashboard-footnote"><strong>Aviso:</strong> este site é educativo e não substitui uma avaliação individual com nutricionista, médico ou outro profissional de saúde. A estimativa não é uma meta de calorias a consumir, nem deve ser usada isoladamente para decidir quanto comer ou para mudar o peso. Os registros de refeições podem estar incompletos.</p>
+</section>
+
+<section class="module-card rotina-card" aria-labelledby="rotina-titulo">
+    <div class="rotina-heading">
+        <div>
+            <h2 id="rotina-titulo">O que comi hoje</h2>
+            <p class="page-description">Registros de {{ data_hoje }}, em ordem de horário.</p>
+        </div>
+        <a class="btn btn-primary rotina-add" href="{{ url_for('auth.pagina_refeicoes') }}">+ Adicionar refeição</a>
+    </div>
+    {% if rotina_hoje %}
+    <ol class="rotina-lista">
+        {% for registro in rotina_hoje %}
+        <li class="rotina-item">
+            <time class="rotina-horario">{{ registro.hora }}</time>
+            <div class="rotina-info">
+                <strong>{{ registro.refeicao.titulo }}</strong>
+                <p>{{ registro.refeicao.descricao or 'Sem descrição informada.' }}</p>
+            </div>
+            <span class="rotina-kcal">{{ '%g'|format(registro.refeicao.calorias or 0) }} kcal</span>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <div class="rotina-vazia">
+        <p>Nenhuma refeição registrada hoje.</p>
+        <p>As refeições de outros dias continuam disponíveis na página de Refeições.</p>
+    </div>
+    {% endif %}
+</section>
+<p class="dashboard-footnote">Os totais consideram apenas os registros de hoje, no horário de São Paulo. Os valores de kcal dependem do que foi informado no cadastro e não representam uma meta diária.</p>
+{% endblock %}

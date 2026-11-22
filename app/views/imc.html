@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}IMC | Gerenciador de Saúde{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">ACOMPANHAMENTO</span><h1>Meu IMC</h1><p class="page-description">Registre suas medidas e consulte seu histórico.</p></div></div>
+<div class="module-card">
+    <h2>Registro de IMC</h2>
+    <p class="page-description">Cadastre e consulte seus registros de IMC.</p>
+    <form action="{{ url_for('health.calcular_imc') }}" method="POST" class="form-modulo">
+        <label for="peso">Peso (kg)</label><input type="number" id="peso" name="peso" step="0.1" min="20" max="400" required placeholder="Ex.: 70.5">
+        <label for="altura">Altura (m)</label><input type="number" id="altura" name="altura" step="0.01" min="0.5" max="2.7" required placeholder="Ex.: 1.75">
+        <button class="btn btn-primary" type="submit">Calcular e salvar</button>
+    </form>
+    <div class="busca-local" role="search">
+        <label for="busca_imc">Buscar no histórico</label>
+        <input type="search" id="busca_imc" autocomplete="off" placeholder="Classificação, peso ou data..." oninput="destacarRegistros('busca_imc', '.linha-imc', 'status-busca-imc')">
+        <small id="status-busca-imc" aria-live="polite">Todos os registros permanecem visíveis.</small>
+    </div>
+    <h3>Histórico de IMC</h3>
+    {% if historico_imc %}
+    <div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Data</th><th>Peso</th><th>Altura</th><th>IMC</th><th>Classificação</th><th>Ações</th></tr></thead>
+        <tbody>
+        {% for reg in historico_imc %}
+        <tr class="linha-imc"><td>{{ reg.data_registro }}</td><td>{{ reg.peso }} kg</td><td>{{ reg.altura }} m</td><td><strong>{{ reg.imc }}</strong></td><td>{{ reg.classificacao }}</td><td class="acoes"><a class="btn btn-outline" href="{{ url_for('health.editar_imc', rid=reg.id) }}">Editar</a><form method="POST" action="{{ url_for('health.excluir_imc', rid=reg.id) }}"><button class="btn" type="submit">Excluir</button></form></td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}<p>Nenhum IMC cadastrado ainda.</p>{% endif %}
+</div>
+<script>
+// Único JavaScript do projeto: busca local, sem recarregar nem esconder dados.
+function destacarRegistros(inputId, seletor, statusId) {
+    const termo = document.getElementById(inputId).value.trim().toLocaleLowerCase('pt-BR');
+    const registros = document.querySelectorAll(seletor);
+    let encontrados = 0;
+    registros.forEach(registro => {
+        const conteudo = Array.from(registro.querySelectorAll('td, strong, p, small, span'))
+            .filter(el => !el.closest('form') && !el.closest('a'))
+            .map(el => el.textContent).join(' ').toLocaleLowerCase('pt-BR');
+        const corresponde = !termo || conteudo.includes(termo);
+        if (termo && corresponde) encontrados++;
+        registro.classList.toggle('busca-destaque', Boolean(termo && corresponde));
+        registro.classList.toggle('busca-suave', Boolean(termo && !corresponde));
+    });
+    document.getElementById(statusId).textContent = termo
+        ? encontrados + ' registro(s) encontrado(s). Os demais continuam visíveis.'
+        : 'Todos os registros permanecem visíveis.';
+}
+</script>
+{% endblock %}

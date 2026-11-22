@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Entrar · Saúde em Dia{% endblock %}
+{% block guest_content %}
+<span class="eyebrow">BEM-VINDO DE VOLTA</span><h2>Acesse sua conta</h2><p class="page-description">Entre para continuar acompanhando seus registros.</p>
+<form method="POST" class="form-modulo auth-form"><label for="email">E-mail</label><input type="email" name="email" id="email" required autocomplete="email" placeholder="seuemail@exemplo.com"><label for="senha">Senha</label><input type="password" name="senha" id="senha" required autocomplete="current-password" placeholder="Sua senha"><button class="btn btn-primary btn-full" type="submit">Entrar na minha conta →</button></form>
+<p class="auth-switch">Ainda não tem uma conta? <a href="{{ url_for('auth.cadastro') }}">Criar conta</a></p>
+{% endblock %}

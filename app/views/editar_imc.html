@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="module-card"><h2>Editar IMC</h2>
+<form method="POST"><label for="peso">Peso (kg)</label><input id="peso" name="peso" type="number" step="0.1" min="20" max="400" value="{{ registro.peso }}" required><label for="altura">Altura (m)</label><input id="altura" name="altura" type="number" step="0.01" min="0.5" max="2.7" value="{{ registro.altura }}" required><button type="submit" class="btn btn-primary">Salvar alterações</button></form>
+<p class="back-link"><a href="{{ url_for('auth.pagina_imc') }}">Voltar ao histórico de IMC</a></p>
+</div>
+{% endblock %}

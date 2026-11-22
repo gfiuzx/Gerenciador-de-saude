@@ -1,0 +1,40 @@
+<!doctype html>
+{% set current_theme = request.cookies.get('theme', 'light') %}
+{% set accent = request.cookies.get('accent', 'verde') %}
+{% set density = request.cookies.get('density', 'confortavel') %}
+<html lang="pt-BR" data-theme="{{ current_theme if current_theme in ('light', 'dark') else 'light' }}" data-accent="{{ accent if accent in ('verde','azul','roxo','laranja') else 'verde' }}" data-density="{{ density if density in ('confortavel','compacto') else 'confortavel' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{% block title %}Saúde em Dia{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{{ 'authenticated' if session.get('user_id') else 'guest' }}">
+{% if session.get('user_id') %}
+<div class="app-layout">
+ <aside class="sidebar" aria-label="Menu lateral">
+  <a class="brand" href="{{ url_for('auth.dashboard') }}"><span class="brand-mark">✳</span><span>saúde<span class="brand-muted">em dia</span><small>SEU ESPAÇO DE BEM-ESTAR</small></span></a>
+  <div class="nav-caption">PRINCIPAL</div>
+  <nav class="side-nav" aria-label="Navegação principal">
+   <a class="side-link {{ 'active' if request.endpoint == 'auth.dashboard' else '' }}" href="{{ url_for('auth.dashboard') }}"><span class="nav-icon">▦</span>Painel geral</a>
+   <a class="side-link {{ 'active' if request.endpoint in ('auth.pagina_imc','health.editar_imc') else '' }}" href="{{ url_for('auth.pagina_imc') }}"><span class="nav-icon">◫</span>Meu IMC</a>
+   <a class="side-link {{ 'active' if request.endpoint in ('auth.pagina_refeicoes','health.editar_refeicao') else '' }}" href="{{ url_for('auth.pagina_refeicoes') }}"><span class="nav-icon">◉</span>Refeições</a>
+  </nav>
+  <div class="nav-caption">PREFERÊNCIAS</div>
+  <nav class="side-nav" aria-label="Configurações">
+   <a class="side-link {{ 'active' if request.endpoint == 'perfil.editar_perfil' else '' }}" href="{{ url_for('perfil.editar_perfil') }}"><span class="nav-icon">♙</span>Meu perfil</a>
+   <a class="side-link {{ 'active' if request.endpoint == 'personalizacao.preferencias' else '' }}" href="{{ url_for('personalizacao.preferencias') }}"><span class="nav-icon">◈</span>Personalização</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="mini-note"><span class="mini-note-icon">✧</span><div><strong>Seu ritmo, seu cuidado.</strong><p>Acompanhe seus registros com tranquilidade.</p></div></div><form action="{{ url_for('auth.logout') }}" method="post"><button type="submit" class="sign-out">↪ &nbsp; Encerrar sessão</button></form></div>
+ </aside>
+ <div class="workspace">
+  <header class="topbar"><div class="breadcrumb">Meu espaço <span>/</span> <strong>{% if request.endpoint == 'auth.dashboard' %}Painel geral{% elif request.endpoint in ('auth.pagina_imc','health.editar_imc') %}Meu IMC{% elif request.endpoint in ('auth.pagina_refeicoes','health.editar_refeicao') %}Refeições{% elif request.endpoint == 'perfil.editar_perfil' %}Meu perfil{% else %}Personalização{% endif %}</strong></div><div class="top-user"><span class="user-avatar">{{ (session.get('nome_usuario') or 'U')[0]|upper }}</span><span>{{ session.get('nome_usuario', 'Usuário') }}</span></div></header>
+  <main class="container">{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
+  <footer class="app-footer">Saúde em Dia · Projeto educativo de acompanhamento pessoal</footer>
+ </div>
+</div>
+{% else %}
+<div class="auth-wrap"><aside class="auth-hero"><div class="auth-hero-inner"><div class="auth-brand">✳ &nbsp; saúde em dia</div><span class="eyebrow">SEU BEM-ESTAR EM FOCO</span><h1>Uma rotina mais consciente começa aqui.</h1><p>Organize suas informações de saúde em um só lugar, com simplicidade e privacidade.</p><div class="auth-decor"><span>◉</span><span>↗</span><span>✳</span></div></div></aside><main class="auth-main"><div class="auth-panel">{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}{% block guest_content %}{% endblock %}</div></main></div>
+{% endif %}
+</body></html>

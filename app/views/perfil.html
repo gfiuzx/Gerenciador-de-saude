@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Meu Perfil | Gerenciador de Saúde{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">SUAS INFORMAÇÕES</span><h1>Meu perfil</h1><p class="page-description">Personalize as informações do seu acompanhamento.</p></div></div>
+<section class="module-card" aria-labelledby="perfil-titulo">
+  <h2 id="perfil-titulo">Meu perfil de saúde</h2>
+  <p class="page-description">Registre informações opcionais para personalizar seu acompanhamento. Estes dados não alteram as refeições cadastradas.</p>
+  <p class="page-description"><strong>Aviso:</strong> as estimativas são aproximadas e não substituem a orientação de nutricionista ou médico, especialmente durante o crescimento.</p>
+  <form method="POST" action="{{ url_for('perfil.editar_perfil') }}" class="form-modulo">
+    <label for="data_nascimento">Data de nascimento</label>
+    <input id="data_nascimento" name="data_nascimento" type="date" value="{{ perfil.data_nascimento if perfil and perfil.data_nascimento else '' }}">
+    <label for="sexo_calculo">Parâmetro de sexo usado pela equação energética (opcional)</label>
+    <select id="sexo_calculo" name="sexo_calculo">
+      {% set sexo_atual = perfil.sexo_calculo if perfil and perfil.sexo_calculo else 'nao_informado' %}
+      <option value="nao_informado" {% if sexo_atual == 'nao_informado' %}selected{% endif %}>Prefiro não informar</option>
+      <option value="feminino" {% if sexo_atual == 'feminino' %}selected{% endif %}>Feminino (parâmetro da equação)</option>
+      <option value="masculino" {% if sexo_atual == 'masculino' %}selected{% endif %}>Masculino (parâmetro da equação)</option>
+    </select>
+    <label for="nivel_atividade">Nível de atividade física</label>
+    {% set atividade = perfil.nivel_atividade if perfil else 'nao_informado' %}
+    <select id="nivel_atividade" name="nivel_atividade">
+      <option value="nao_informado" {% if atividade == 'nao_informado' %}selected{% endif %}>Não informado</option>
+      <option value="baixa" {% if atividade == 'baixa' %}selected{% endif %}>Baixo</option>
+      <option value="moderada" {% if atividade == 'moderada' %}selected{% endif %}>Moderado</option>
+      <option value="alta" {% if atividade == 'alta' %}selected{% endif %}>Alto</option>
+    </select>
+    <label for="objetivo">Objetivo de acompanhamento</label>
+    {% set objetivo = perfil.objetivo if perfil else 'manter' %}
+    <select id="objetivo" name="objetivo">
+      <option value="manter" {% if objetivo == 'manter' %}selected{% endif %}>Manter meu peso</option>
+      <option value="acompanhar_ganho" {% if objetivo == 'acompanhar_ganho' %}selected{% endif %}>Acompanhar ganho de peso</option>
+      <option value="acompanhar_perda" {% if objetivo == 'acompanhar_perda' %}selected{% endif %}>Acompanhar perda de peso</option>
+    </select>
+    <p class="page-description">O objetivo é apenas uma preferência de acompanhamento, sem metas automáticas de calorias. O site faz estimativas informativas a partir dos 12 anos, com equações distintas para adolescentes e adultos. Não define metas de alimentação. Não substitui avaliação com profissional de saúde.</p>
+    <button type="submit" class="btn btn-primary">Salvar perfil</button>
+    <a class="btn btn-outline" href="{{ url_for('auth.dashboard') }}">Voltar ao dashboard</a>
+  </form>
+</section>
+{% endblock %}
